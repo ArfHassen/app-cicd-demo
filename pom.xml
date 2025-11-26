@@ -20,19 +20,25 @@
 	<developers>
 		<developer/>
 	</developers>
+	<!-- 🔥 Configuration SCM obligatoire pour Maven Release Plugin -->
 	<scm>
-		
 		<!-- URL du dépôt en lecture seule -->
-		<connection>scm:git:git@github.com:ArfHassen/app-spring-demo.git</connection>
+		<connection>scm:git:git@github.com:ArfHassen/app-cicd-demo.git</connection>
 		<!-- URL du dépôt pour push / commit -->
-		<developerConnection>scm:git:git@github.com:ArfHassen/app-spring-demo.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:ArfHassen/app-cicd-demo.git</developerConnection>
 		<!-- URL Web du projet -->
-		<url>https://github.com/ArfHassen/app-spring-demo</url>
+		<url>https://github.com/ArfHassen/app-cicd-demo</url>
 		<!-- Tag de départ (optionnel, Maven le remplacera automatiquement) -->
 		<tag>HEAD</tag>
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<!-- Version Maven Release Plugin -->
+		<maven-release-plugin.version>3.0.1</maven-release-plugin.version>
+
+		<!-- GPG -->
+		<gpg.executable>gpg</gpg.executable>
+		<gpg.keyname>${gpg.keyname}</gpg.keyname>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -84,7 +90,39 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<!-- 🔥 Maven Release Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>${maven-release-plugin.version}</version>
+				<configuration>
+					<tagNameFormat>@{project.version}</tagNameFormat>
+					<pushChanges>true</pushChanges>
+					<!--<useGpgCmd>true</useGpgCmd>-->
+				</configuration>
+			</plugin>
 
+			<!-- 🔥 Signer automatiquement les RELEASE -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<!-- Nexus RELEASE / SNAPSHOT -->

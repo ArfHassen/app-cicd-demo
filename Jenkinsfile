@@ -5,35 +5,12 @@ pipeline {
         jdk 'jdk17'
         maven 'maven3'
     }
-     // Toujours déclenché par GitHub webhook
-        triggers {
-            // Ceci déclenche le job sur tout push GitHub
-            githubPush()
-        }
-
     stages {
          stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ArfHassen/app-spring-demo.git'
             }
         }
-        /* stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        } */
-        /* stage('Checkout') {
-                    steps {
-                        // Forcer le checkout même si aucun changement détecté
-                        checkout([$class: 'GitSCM',
-                            branches: [[name: 'refs/heads/main']],
-                            doGenerateSubmoduleConfigurations: false,
-                            extensions: [[$class: 'WipeWorkspace']], // vide workspace à chaque build
-                            userRemoteConfigs: [[url: 'https://github.com/ArfHassen/app-spring-demo.git']]
-                        ])
-                    }
-        } */
-
         stage('Build') {
             steps {
                 sh 'mvn -s settings.xml clean package'
@@ -54,12 +31,19 @@ pipeline {
             }
         }
         stage('Configure Git') {
-            steps {
-                sh """
-                    git config user.name "ArfHassen"
-                    git config user.email "arf.hassen@gmail.com"
-                """
-            }
+                    steps {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                            sh """
+                                mkdir -p ~/.ssh
+                                eval \$(ssh-agent)
+                                ssh-add $SSH_KEY
+                                ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+                                git config user.name "ArfHassen"
+                                git config user.email "arf.hassen@gmail.com"
+                            """
+                        }
+                    }
         }
         stage('Release') {
             when {
