@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -44,24 +43,17 @@ pipeline {
                 }
             }
             steps {
-                // Charger la clé SSH et lancer Maven Release dans le même shell
-                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                    sh """
-                        echo "=== Config SSH pour GitHub ==="
-                        mkdir -p ~/.ssh
-                        eval \$(ssh-agent -s)
-                        ssh-add \$SSH_KEY
-                        ssh-keyscan github.com >> ~/.ssh/known_hosts
+                sh """
+                    # SSH déjà permanent → pas besoin de withCredentials
+                    git config user.name "${GIT_USER}"
+                    git config user.email "${GIT_EMAIL}"
 
-                        git config user.name "${GIT_USER}"
-                        git config user.email "${GIT_EMAIL}"
+                    # Test SSH
+                    ssh -T git@github.com
 
-                        ssh -T git@github.com
-
-                        echo "=== Lancement Maven Release ==="
-                        mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform -Darguments="-DskipTests"
-                    """
-                }
+                    # Maven Release Plugin
+                    mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform -Darguments="-DskipTests"
+                """
             }
         }
     }
@@ -78,3 +70,4 @@ pipeline {
         }
     }
 }
+
