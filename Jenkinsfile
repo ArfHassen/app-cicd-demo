@@ -5,81 +5,82 @@ pipeline {
         jdk 'jdk17'
         maven 'maven3'
     }
+
+    environment {
+        MAVEN_SETTINGS = 'settings.xml' // ton fichier settings Maven
+        GIT_USER = 'ArfHassen'
+        GIT_EMAIL = 'arf.hassen@gmail.com'
+    }
+
     stages {
-         stage('Checkout') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/ArfHassen/app-cicd-demo.git'
+                git branch: 'main', url: 'git@github.com:ArfHassen/app-cicd-demo.git'
             }
         }
-        stage('Build') {
+
+        stage('Configure SSH for GitHub') {
             steps {
-                sh 'mvn -s settings.xml clean package'
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                    sh """
+                        mkdir -p ~/.ssh
+                        eval \$(ssh-agent -s)
+                        ssh-add \$SSH_KEY
+                        ssh-keyscan github.com >> ~/.ssh/known_hosts
+                        echo "Host github.com
+HostName github.com
+User git
+IdentityFile \$SSH_KEY
+IdentitiesOnly yes" > ~/.ssh/config
+                        chmod 600 ~/.ssh/config
+                        git config user.name "${GIT_USER}"
+                        git config user.email "${GIT_EMAIL}"
+                    """
+                }
             }
         }
-        stage('DEBUG BRANCH') {
-          steps {
-            echo "BRANCH_NAME = '${env.BRANCH_NAME}'"
-            echo "GIT_BRANCH   = '${env.GIT_BRANCH}'"
-          }
+
+        stage('Build & Test') {
+            steps {
+                sh "mvn -s ${MAVEN_SETTINGS} clean verify"
+            }
         }
+
         stage('Deploy SNAPSHOT') {
             when {
-                expression { return env.GIT_BRANCH == 'origin/main' }
+                expression {
+                    sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim() == 'main'
+                }
             }
             steps {
-                sh 'mvn -s settings.xml deploy'
+                sh "mvn -s ${MAVEN_SETTINGS} deploy"
             }
         }
-        stage('Configure Git') {
-                    steps {
-                        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                            sh """
-                                    mkdir -p ~/.ssh
-                                    eval \$(ssh-agent -s)
-                                    ssh-add \$SSH_KEY
-                                    ssh-keyscan github.com >> ~/.ssh/known_hosts
-                                    echo "Host github.com
-                            HostName github.com
-                            User git
-                            IdentityFile \$SSH_KEY
-                            IdentitiesOnly yes" > ~/.ssh/config
-                                     git config user.name "ArfHassen"
-                                     git config user.email "arf.hassen@gmail.com"
-                                    ssh -T git@github.com
-                                """
-                        }
-                    }
-        }
-        stage('Test SSH GitHub') {
-            steps {
-                sh 'ssh -T git@github.com'
-            }
-        }
+
         stage('Release') {
             when {
-                expression { return env.GIT_BRANCH == "origin/main" }
+                expression {
+                    sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim() == 'main'
+                }
             }
             steps {
-                sh "mvn -s settings.xml release:prepare release:perform -DskipTests"
-            }
-            /* steps {
                 sh """
-                    mvn versions:set -DremoveSnapshot
-                    mvn -s settings.xml clean deploy -P release
-                    mvn versions:commit
+                    mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform \
+                        -Darguments="-DskipTests"
                 """
-            } */
+            }
         }
     }
+
     post {
-            always {
-                echo 'Build terminé.'
-            }
-            success {
-                echo 'Build réussi !'
-            }
-            failure {
-                echo 'Build échoué.'
-            }
+        always {
+            echo 'Build terminé.'
         }
+        success {
+            echo 'Build réussi !'
+        }
+        failure {
+            echo 'Build échoué.'
+        }
+    }
 }
