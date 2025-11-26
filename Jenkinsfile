@@ -34,14 +34,19 @@ pipeline {
                     steps {
                         withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                             sh """
-                                mkdir -p ~/.ssh
-                                eval \$(ssh-agent)
-                                ssh-add $SSH_KEY
-                                ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-                                git config user.name "ArfHassen"
-                                git config user.email "arf.hassen@gmail.com"
-                            """
+                                    mkdir -p ~/.ssh
+                                    eval \$(ssh-agent -s)
+                                    ssh-add \$SSH_KEY
+                                    ssh-keyscan github.com >> ~/.ssh/known_hosts
+                                    echo "Host github.com
+                            HostName github.com
+                            User git
+                            IdentityFile \$SSH_KEY
+                            IdentitiesOnly yes" > ~/.ssh/config
+                                     git config user.name "ArfHassen"
+                                     git config user.email "arf.hassen@gmail.com"
+                                    ssh -T git@github.com
+                                """
                         }
                     }
         }
