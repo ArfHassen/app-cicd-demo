@@ -45,6 +45,11 @@ pipeline {
                         }
                     }
         }
+        stage('Test SSH GitHub') {
+            steps {
+                sh 'ssh -T git@github.com'
+            }
+        }
         stage('Release') {
             when {
                 expression { return env.GIT_BRANCH == "origin/main" }
