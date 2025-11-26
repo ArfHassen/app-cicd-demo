@@ -10,12 +10,30 @@ pipeline {
         MAVEN_SETTINGS = 'settings.xml'
         GIT_USER = 'ArfHassen'
         GIT_EMAIL = 'arf.hassen@gmail.com'
+        SSH_KEY_FILE = '/var/jenkins_home/.ssh/id_ed25519'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/ArfHassen/app-cicd-demo.git', credentialsId: 'github-username-token'
+                // Utilisation du token GitHub pour clonage HTTPS ou SSH configuré
+                git branch: 'main', url: 'git@github.com:ArfHassen/app-cicd-demo.git'
+            }
+        }
+
+        stage('Configure SSH for GitHub') {
+            steps {
+                sh """
+                    mkdir -p ~/.ssh
+                    echo "Host github.com
+                        HostName github.com
+                        User git
+                        IdentityFile ${SSH_KEY_FILE}
+                        IdentitiesOnly yes" > ~/.ssh/config
+                    chmod 600 ~/.ssh/config
+                    ssh-keyscan github.com >> ~/.ssh/known_hosts
+                    ssh-add ${SSH_KEY_FILE}
+                """
             }
         }
 
@@ -28,7 +46,9 @@ pipeline {
         stage('Deploy SNAPSHOT') {
             when {
                 expression {
-                    sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim() == 'main'
+                    // Déploiement SNAPSHOT uniquement sur branches main/develop
+                    def branch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    return branch == 'main' || branch == 'develop'
                 }
             }
             steps {
@@ -38,27 +58,22 @@ pipeline {
 
         stage('Release') {
             when {
-                expression {
-                    def branch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                    echo "Current branch = ${branch}"
-                    return branch == 'main'
-                }
+                // Release uniquement si un tag correspond à vX.Y.Z
+                tag "v*.*.*"
             }
             steps {
                 sh """
-                    # Config Git
                     git config user.name "${GIT_USER}"
                     git config user.email "${GIT_EMAIL}"
 
-                    # Test SSH (ignore le code de retour)
+                    # Test SSH
                     ssh -T git@github.com || true
 
-                    # Maven Release Plugin
+                    # Maven Release Plugin : prepare & perform
                     mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform -Darguments="-DskipTests"
                 """
             }
         }
-
     }
 
     post {
@@ -73,4 +88,3 @@ pipeline {
         }
     }
 }
-
