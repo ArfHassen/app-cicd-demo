@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -7,7 +8,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_SETTINGS = 'settings.xml' // ton fichier settings Maven
+        MAVEN_SETTINGS = 'settings.xml'
         GIT_USER = 'ArfHassen'
         GIT_EMAIL = 'arf.hassen@gmail.com'
     }
@@ -16,27 +17,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ArfHassen/app-cicd-demo.git', credentialsId: 'github-username-token'
-            }
-        }
-
-        stage('Configure SSH for GitHub') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                    sh """
-                        mkdir -p ~/.ssh
-                        eval \$(ssh-agent -s)
-                        ssh-add \$SSH_KEY
-                        ssh-keyscan github.com >> ~/.ssh/known_hosts
-                        echo "Host github.com
-HostName github.com
-User git
-IdentityFile \$SSH_KEY
-IdentitiesOnly yes" > ~/.ssh/config
-                        chmod 600 ~/.ssh/config
-                        git config user.name "${GIT_USER}"
-                        git config user.email "${GIT_EMAIL}"
-                    """
-                }
             }
         }
 
@@ -64,10 +44,24 @@ IdentitiesOnly yes" > ~/.ssh/config
                 }
             }
             steps {
-                sh """
-                    mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform \
-                        -Darguments="-DskipTests"
-                """
+                // Charger la clé SSH et lancer Maven Release dans le même shell
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                    sh """
+                        echo "=== Config SSH pour GitHub ==="
+                        mkdir -p ~/.ssh
+                        eval \$(ssh-agent -s)
+                        ssh-add \$SSH_KEY
+                        ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+                        git config user.name "${GIT_USER}"
+                        git config user.email "${GIT_EMAIL}"
+
+                        ssh -T git@github.com
+
+                        echo "=== Lancement Maven Release ==="
+                        mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform -Darguments="-DskipTests"
+                    """
+                }
             }
         }
     }
