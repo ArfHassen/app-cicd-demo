@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>org.acme</groupId>
 	<artifactId>app-demo-spring</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<name>app-demo-spring</name>
 	<description>app-demo-spring</description>
 	<url />
@@ -28,7 +28,7 @@
 		<!-- URL Web du projet -->
 		<url>https://github.com/ArfHassen/app-cicd-demo</url>
 		<!-- Tag de départ (optionnel, Maven le remplacera automatiquement) -->
-		<tag>HEAD</tag>
+		<tag>0.0.2</tag>
 	</scm>
 	<properties>
 		<java.version>17</java.version>
