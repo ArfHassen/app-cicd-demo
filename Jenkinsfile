@@ -8,7 +8,7 @@ pipeline {
     stages {
          stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/ArfHassen/app-spring-demo.git'
+                git branch: 'main', url: 'https://github.com/ArfHassen/app-cicd-demo.git'
             }
         }
         stage('Build') {
