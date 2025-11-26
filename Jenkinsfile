@@ -39,23 +39,26 @@ pipeline {
         stage('Release') {
             when {
                 expression {
-                    sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim() == 'main'
+                    def branch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    echo "Current branch = ${branch}"
+                    return branch == 'main'
                 }
             }
             steps {
                 sh """
-                    # SSH déjà permanent → pas besoin de withCredentials
+                    # Config Git
                     git config user.name "${GIT_USER}"
                     git config user.email "${GIT_EMAIL}"
 
-                    # Test SSH
-                    ssh -T git@github.com
+                    # Test SSH (ignore le code de retour)
+                    ssh -T git@github.com || true
 
                     # Maven Release Plugin
                     mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform -Darguments="-DskipTests"
                 """
             }
         }
+
     }
 
     post {
