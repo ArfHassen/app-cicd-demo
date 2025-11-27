@@ -38,6 +38,23 @@ pipeline {
                 sh "mvn -s ${MAVEN_SETTINGS} deploy"
             }
         }
+        stage('Build WAR & Deploy to Tomcat') {
+            when {
+                expression {
+                    sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim() == 'main'
+                }
+            }
+            steps {
+                sh """
+                    # Générer WAR via profil tomcat
+                    mvn -P tomcat -s ${MAVEN_SETTINGS} clean package
+
+                    # Déployer sur Tomcat
+                    # copier le WAR dans le webapps de Tomcat
+                    cp target/app-demo-spring.war /var/jenkins_home/tomcat/webapps/
+                """
+            }
+        }
 
         /* stage('Release') {
             when {
