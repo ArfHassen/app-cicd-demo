@@ -47,7 +47,8 @@ pipeline {
             steps {
                 sh """
                     # Générer WAR via profil tomcat
-                    mvn -P tomcat -s ${MAVEN_SETTINGS} clean package
+                    #mvn -P tomcat -s ${MAVEN_SETTINGS} clean package
+                    mvn -s ${MAVEN_SETTINGS} clean package
 
                     # Déployer sur Tomcat
                     # copier le WAR dans le webapps de Tomcat
