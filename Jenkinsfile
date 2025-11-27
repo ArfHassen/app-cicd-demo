@@ -39,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Release') {
+        /* stage('Release') {
             when {
                 // Release uniquement si un tag correspond à vX.Y.Z
                 tag "v*.*.*"
@@ -56,7 +56,7 @@ pipeline {
                     mvn -B -s ${MAVEN_SETTINGS} release:clean release:prepare release:perform -Darguments="-DskipTests"
                 """
             }
-        }
+        } */
     }
 
     post {
