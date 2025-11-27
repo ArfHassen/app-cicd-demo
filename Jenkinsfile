@@ -16,24 +16,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Utilisation du token GitHub pour clonage HTTPS ou SSH configuré
-                git branch: 'main', url: 'git@github.com:ArfHassen/app-cicd-demo.git'
-            }
-        }
-
-        stage('Configure SSH for GitHub') {
-            steps {
-                sh """
-                    mkdir -p ~/.ssh
-                    echo "Host github.com
-                        HostName github.com
-                        User git
-                        IdentityFile ${SSH_KEY_FILE}
-                        IdentitiesOnly yes" > ~/.ssh/config
-                    chmod 600 ~/.ssh/config
-                    ssh-keyscan github.com >> ~/.ssh/known_hosts
-                    ssh-add ${SSH_KEY_FILE}
-                """
+                git branch: 'main', url: 'https://github.com/ArfHassen/app-cicd-demo.git', credentialsId: 'github-username-token'
             }
         }
 

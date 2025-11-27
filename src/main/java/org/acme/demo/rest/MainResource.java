@@ -11,6 +11,6 @@ public class MainResource {
 
     @GetMapping("/sayhello")
     public ResponseEntity<String> sayHello(){
-        return ResponseEntity.ok("Hello !!");
+        return ResponseEntity.ok("Hello every body !!!");
     }
 }
