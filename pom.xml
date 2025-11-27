@@ -138,6 +138,7 @@
 		<profile>
 			<id>tomcat</id>
 			<build>
+				<finalName>app-demo-spring</finalName>  <!-- fixe le nom du WAR -->
 				<plugins>
 					<!-- Plugin Maven WAR -->
 					<plugin>

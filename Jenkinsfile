@@ -51,9 +51,7 @@ pipeline {
 
                     # Déployer sur Tomcat
                     # copier le WAR dans le webapps de Tomcat
-                    WAR_FILE=$(ls target/*.war | head -n 1)
-                    cp $WAR_FILE ../tomcat/webapps/
-
+                    cp target/app-demo-spring.war ../tomcat/webapps/
                 """
             }
         }
