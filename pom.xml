@@ -135,22 +135,40 @@
 		</plugins>
 	</build>
 	<profiles>
-			<profile>
-				<id>tomcat</id>
-				<build>
-					<plugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-war-plugin</artifactId>
-							<version>3.3.2</version>
-							<configuration>
-								<failOnMissingWebXml>false</failOnMissingWebXml>
-							</configuration>
-						</plugin>
-					</plugins>
-				</build>
-			</profile>
+		<profile>
+			<id>tomcat</id>
+			<build>
+				<plugins>
+					<!-- Plugin Maven WAR -->
+					<plugin>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>3.3.2</version>
+						<configuration>
+							<failOnMissingWebXml>false</failOnMissingWebXml>
+							<warName>app-demo-spring</warName>
+						</configuration>
+					</plugin>
+
+					<!-- Plugin Spring Boot pour WAR -->
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>repackage</goal>
+								</goals>
+								<configuration>
+									<classifier>war</classifier>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
+
 	<!-- Nexus RELEASE / SNAPSHOT -->
 	<distributionManagement>
 		<repository>
