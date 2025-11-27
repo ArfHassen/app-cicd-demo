@@ -52,7 +52,7 @@ pipeline {
 
                     # Déployer sur Tomcat
                     # copier le WAR dans le webapps de Tomcat
-                    cp target/app-demo-spring.war ../tomcat/webapps/
+                    cp target/app-demo-spring.war /var/jenkins_home/tomcat-webapps/
                 """
             }
         }
