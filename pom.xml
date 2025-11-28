@@ -13,7 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>app-demo-spring</name>
 	<description>app-demo-spring</description>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 	<url/>
 	<licenses>
 		<license/>
