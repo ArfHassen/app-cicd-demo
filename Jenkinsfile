@@ -58,6 +58,12 @@ pipeline {
                 """
             }
         } */
+           stage('Check minikube access') {
+                    steps {
+                        sh 'minikube status'
+                        sh 'docker ps | grep minikube || true'
+                    }
+                }
            stage('Build Docker image in Minikube') {
                 steps {
                         sh 'eval $(minikube docker-env) && docker build -t app-demo:latest .'
