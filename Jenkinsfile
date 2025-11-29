@@ -62,14 +62,14 @@ pipeline {
                 steps {
                         sh 'eval $(minikube docker-env) && docker build -t app-demo:latest .'
                     }
-                }
+           }
 
-                stage('Deploy to Kubernetes') {
-                    steps {
+          stage('Deploy to Kubernetes') {
+                steps {
                         sh 'kubectl apply -f k8s/deployment.yaml'
                     }
-                }
-           }
+          }
+
         /* stage('Release') {
             when {
                 // Release uniquement si un tag correspond à vX.Y.Z
