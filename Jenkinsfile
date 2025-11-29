@@ -58,6 +58,17 @@ pipeline {
                 """
             }
         } */
+          stage('package SNAPSHOT') {
+                    when {
+                        expression {
+                            def branch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                            return branch == 'main' || branch == 'develop'
+                        }
+                    }
+                    steps {
+                        sh "mvn -s ${MAVEN_SETTINGS} package"
+                    }
+                }
            stage('Check minikube access') {
                     steps {
                         /* sh 'minikube status' */
