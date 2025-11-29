@@ -20,13 +20,13 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
+        /* stage('Build & Test') {
             steps {
                 sh "mvn -s ${MAVEN_SETTINGS} clean verify"
             }
-        }
+        } */
 
-        stage('Deploy SNAPSHOT') {
+        /* stage('Deploy SNAPSHOT') {
             when {
                 expression {
                     // Déploiement SNAPSHOT uniquement sur branches main/develop
@@ -37,8 +37,8 @@ pipeline {
             steps {
                 sh "mvn -s ${MAVEN_SETTINGS} deploy"
             }
-        }
-        stage('Build WAR & Deploy to Tomcat') {
+        } */
+        /* stage('Build WAR & Deploy to Tomcat') {
             when {
                 expression {
                     sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim() == 'main'
@@ -57,8 +57,19 @@ pipeline {
 
                 """
             }
-        }
+        } */
+           stage('Build Docker image in Minikube') {
+                steps {
+                        sh 'eval $(minikube docker-env) && docker build -t app-demo:latest .'
+                    }
+                }
 
+                stage('Deploy to Kubernetes') {
+                    steps {
+                        sh 'kubectl apply -f k8s/deployment.yaml'
+                    }
+                }
+           }
         /* stage('Release') {
             when {
                 // Release uniquement si un tag correspond à vX.Y.Z
